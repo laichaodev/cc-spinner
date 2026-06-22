@@ -9,25 +9,9 @@ pub async fn ai_generate(
     app_handle: tauri::AppHandle,
     words: Vec<String>,
 ) -> Result<Vec<SpinnerEntry>, String> {
-    let env_path = state
-        .paths
-        .profiles_dir
-        .parent()
-        .unwrap()
-        .join(".env");
+    let service = AiGenerateService::new();
 
-    let service = if let Ok(key) = std::fs::read_to_string(&env_path) {
-        let key = key.trim().to_string();
-        if !key.is_empty() {
-            AiGenerateService::new_api(key)
-        } else {
-            AiGenerateService::new_cli()
-        }
-    } else {
-        AiGenerateService::new_cli()
-    };
-
-    // Store for cancellation (share the same Arc<AtomicBool>)
+    // Store for cancellation
     {
         let mut guard = state.ai_service.lock().map_err(|e| e.to_string())?;
         *guard = Some(service.clone());

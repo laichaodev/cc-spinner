@@ -10,28 +10,13 @@ struct AiResponseEntry {
 }
 
 #[derive(Clone)]
-pub(crate) enum AiBackend {
-    Api { api_key: String },
-    Cli,
-}
-
-#[derive(Clone)]
 pub struct AiGenerateService {
-    pub(crate) backend: AiBackend,
     pub(crate) cancelled: Arc<AtomicBool>,
 }
 
 impl AiGenerateService {
-    pub fn new_api(api_key: String) -> Self {
+    pub fn new() -> Self {
         Self {
-            backend: AiBackend::Api { api_key },
-            cancelled: Arc::new(AtomicBool::new(false)),
-        }
-    }
-
-    pub fn new_cli() -> Self {
-        Self {
-            backend: AiBackend::Cli,
             cancelled: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -44,7 +29,7 @@ impl AiGenerateService {
         self.cancelled.load(Ordering::SeqCst)
     }
 
-    /// Generate SpinnerEntry list from words, with progress callback
+    /// Generate SpinnerEntry list from words, using local claude CLI with progress callback
     pub async fn generate(
         &self,
         words: Vec<String>,
@@ -64,7 +49,6 @@ impl AiGenerateService {
             match self.generate_batch(&batch_words).await {
                 Ok(entries) => results.extend(entries),
                 Err(e) => {
-                    // Mark failed words with empty gloss
                     for word in &batch_words {
                         results.push(SpinnerEntry {
                             verb: word.to_string(),
@@ -82,66 +66,6 @@ impl AiGenerateService {
     }
 
     async fn generate_batch(&self, words: &[&str]) -> Result<Vec<SpinnerEntry>, String> {
-        match &self.backend {
-            AiBackend::Api { api_key } => self.generate_batch_via_api(words, api_key).await,
-            AiBackend::Cli => self.generate_batch_via_cli(words).await,
-        }
-    }
-
-    async fn generate_batch_via_api(
-        &self,
-        words: &[&str],
-        api_key: &str,
-    ) -> Result<Vec<SpinnerEntry>, String> {
-        let system_prompt = self.system_prompt();
-
-        let word_list: String = words
-            .iter()
-            .map(|w| format!("- {w}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        let user_message = format!("输入动词列表：\n{word_list}");
-
-        let client = reqwest::Client::new();
-        let mut retries = 0;
-        loop {
-            let resp = client
-                .post("https://api.anthropic.com/v1/messages")
-                .header("x-api-key", api_key)
-                .header("anthropic-version", "2023-06-01")
-                .header("content-type", "application/json")
-                .json(&serde_json::json!({
-                    "model": "claude-sonnet-4-6",
-                    "max_tokens": 4096,
-                    "system": system_prompt,
-                    "messages": [{"role": "user", "content": user_message}]
-                }))
-                .send()
-                .await;
-
-            match resp {
-                Ok(r) if r.status().is_success() => {
-                    let body: serde_json::Value = r.json().await.map_err(|e| e.to_string())?;
-                    let text = body["content"][0]["text"]
-                        .as_str()
-                        .ok_or("Unexpected response format")?;
-                    return self.parse_response(text);
-                }
-                Ok(r) if r.status().as_u16() == 429 => {
-                    retries += 1;
-                    if retries > 3 {
-                        return Err("Rate limited after 3 retries".to_string());
-                    }
-                    let delay = 2u64.pow(retries);
-                    tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
-                }
-                Ok(r) => return Err(format!("API error: {}", r.status())),
-                Err(e) => return Err(format!("Network error: {e}")),
-            }
-        }
-    }
-
-    async fn generate_batch_via_cli(&self, words: &[&str]) -> Result<Vec<SpinnerEntry>, String> {
         let system_prompt = self.system_prompt();
 
         let word_list: String = words
@@ -180,7 +104,6 @@ impl AiGenerateService {
     }
 
     fn parse_response(&self, text: &str) -> Result<Vec<SpinnerEntry>, String> {
-        // Try to extract JSON array from text
         let text = text.trim();
         let start = text.find('[');
         let end = text.rfind(']');
