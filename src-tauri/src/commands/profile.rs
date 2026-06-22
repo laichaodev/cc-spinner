@@ -1,6 +1,14 @@
-use crate::models::Profile;
+use crate::models::{Profile, SpinnerEntry};
 use crate::AppState;
+use serde::Deserialize;
 use tauri::State;
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateProfilePayload {
+    name: Option<String>,
+    mode: Option<String>,
+    entries: Option<Vec<SpinnerEntry>>,
+}
 
 #[tauri::command]
 pub fn list_profiles(state: State<AppState>) -> Result<Vec<Profile>, String> {
@@ -18,30 +26,51 @@ pub fn delete_profile(state: State<AppState>, id: String) -> Result<(), String> 
 }
 
 #[tauri::command]
-pub fn update_profile(state: State<AppState>, id: String, profile: Profile) -> Result<Profile, String> {
+pub fn update_profile(state: State<AppState>, id: String, profile: UpdateProfilePayload) -> Result<Profile, String> {
     let existing = state.profile_service.get(&id)?;
     let updated = Profile {
         id: existing.id,
+        name: profile.name.unwrap_or(existing.name),
+        mode: profile.mode.unwrap_or(existing.mode),
+        entries: profile.entries.unwrap_or(existing.entries),
         created_at: existing.created_at,
         updated_at: chrono::Utc::now().to_rfc3339(),
-        ..profile
     };
     state.profile_service.save(&updated)?;
+    state.sync_active_profile(&id)?;
     Ok(updated)
 }
 
 #[tauri::command]
 pub fn duplicate_profile(state: State<AppState>, id: String, new_name: String) -> Result<Profile, String> {
     let existing = state.profile_service.get(&id)?;
-    let slug = crate::services::profile::slugify(&new_name);
-    state.profile_service.create(&new_name, &existing.mode)?;
-    let new = state.profile_service.get(&slug)?;
-    let updated = Profile {
+    let base_slug = crate::services::profile::slugify(&new_name);
+
+    // Avoid collision: append -2, -3, ... if slug already exists
+    let mut slug = base_slug.clone();
+    if state.profile_service.exists(&slug) {
+        let mut n = 2;
+        loop {
+            let candidate = format!("{}-{}", base_slug, n);
+            if !state.profile_service.exists(&candidate) {
+                slug = candidate;
+                break;
+            }
+            n += 1;
+        }
+    }
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let new_profile = Profile {
+        id: slug,
+        name: new_name,
+        mode: existing.mode.clone(),
         entries: existing.entries,
-        ..new
+        created_at: now.clone(),
+        updated_at: now,
     };
-    state.profile_service.save(&updated)?;
-    Ok(updated)
+    state.profile_service.save(&new_profile)?;
+    Ok(new_profile)
 }
 
 #[tauri::command]

@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Profile, SpinnerEntry } from "@/lib/api/profiles";
 import { profilesApi } from "@/lib/api/profiles";
 import { EditorToolbar } from "./EditorToolbar";
 import { EntryTable } from "./EntryTable";
 import { AIGenerateDialog } from "./AIGenerateDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, X } from "lucide-react";
 
 interface Props {
   profile: Profile | null;
@@ -14,15 +15,32 @@ interface Props {
 export function MainContent({ profile, onProfileUpdated }: Props) {
   const queryClient = useQueryClient();
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Auto-clear error after 5s
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   const addEntriesMutation = useMutation({
     mutationFn: ({ id, entries }: { id: string; entries: SpinnerEntry[] }) =>
-      profilesApi.update(id, { entries: [...(profile?.entries ?? []), ...entries] }),
+      profilesApi.addEntries(id, entries),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       onProfileUpdated();
     },
+    onError: (e: any) => setError(String(e)),
   });
+
+  const handleAddEntry = useCallback(() => {
+    if (!profile) return;
+    addEntriesMutation.mutate({
+      id: profile.id,
+      entries: [{ verb: "", gloss: "" }],
+    });
+  }, [profile, addEntriesMutation]);
 
   const updateEntryMutation = useMutation({
     mutationFn: ({
@@ -33,22 +51,16 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
       id: string;
       index: number;
       entry: SpinnerEntry;
-    }) => {
-      const entries = [...(profile?.entries ?? [])];
-      entries[index] = entry;
-      return profilesApi.update(id, { entries });
-    },
+    }) => profilesApi.updateEntry(id, index, entry),
     onSuccess: onProfileUpdated,
+    onError: (e: any) => setError(String(e)),
   });
 
   const deleteEntriesMutation = useMutation({
-    mutationFn: ({ id, indices }: { id: string; indices: number[] }) => {
-      const entries = profile?.entries.filter(
-        (_, i) => !indices.includes(i)
-      ) ?? [];
-      return profilesApi.update(id, { entries });
-    },
+    mutationFn: ({ id, indices }: { id: string; indices: number[] }) =>
+      profilesApi.deleteEntries(id, indices),
     onSuccess: onProfileUpdated,
+    onError: (e: any) => setError(String(e)),
   });
 
   const reorderMutation = useMutation({
@@ -60,19 +72,18 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
       id: string;
       from: number;
       to: number;
-    }) => {
-      const entries = [...(profile?.entries ?? [])];
-      const [entry] = entries.splice(from, 1);
-      entries.splice(to, 0, entry);
-      return profilesApi.update(id, { entries });
-    },
+    }) => profilesApi.reorderEntries(id, from, to),
     onSuccess: onProfileUpdated,
+    onError: (e: any) => setError(String(e)),
   });
 
   const handleModeChange = useCallback(
     (mode: "replace" | "append") => {
       if (profile) {
-        profilesApi.update(profile.id, { mode }).then(onProfileUpdated);
+        profilesApi
+          .update(profile.id, { mode })
+          .then(onProfileUpdated)
+          .catch((e) => setError(String(e)));
       }
     },
     [profile, onProfileUpdated]
@@ -88,13 +99,32 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      {error && (
+        <div className="flex items-center gap-2 border-b border-red-900/30 bg-red-950/30 px-4 py-2">
+          <AlertCircle size={14} className="text-red-400 shrink-0" />
+          <span className="flex-1 text-xs text-red-300">{error}</span>
+          <button
+            className="text-red-400 hover:text-red-300"
+            onClick={() => setError(null)}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       <EditorToolbar
         mode={profile.mode}
         onModeChange={handleModeChange}
+        onAddEntry={handleAddEntry}
         onImport={(words) =>
           addEntriesMutation.mutate({
             id: profile.id,
-            entries: words.map((w) => ({ verb: w, gloss: "" })),
+            entries: words.map((w) => {
+              const match = w.match(/^(.+?)[：:](.+)$/);
+              if (match) {
+                return { verb: match[1].trim(), gloss: match[2].trim() };
+              }
+              return { verb: w, gloss: "" };
+            }),
           })
         }
         onAiGenerate={() => setShowAiDialog(true)}

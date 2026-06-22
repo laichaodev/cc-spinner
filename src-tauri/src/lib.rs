@@ -5,8 +5,10 @@ mod services;
 use models::AppSettings;
 use services::ai_generate::AiGenerateService;
 use services::profile::ProfileService;
+use services::profile::format_spinner_text;
 use services::spinner_config::SpinnerConfigService;
 use services::AppPaths;
+use crate::models::SpinnerVerbsConfig;
 use std::sync::Mutex;
 use tauri::Manager;
 
@@ -43,6 +45,22 @@ impl AppState {
         }
     }
 
+    /// If profile_id matches the active profile, sync entries to ~/.claude/settings.json
+    pub fn sync_active_profile(&self, profile_id: &str) -> Result<(), String> {
+        let app_settings = self.read_app_settings()?;
+        if let Some(ref active_id) = app_settings.active_profile_id {
+            if active_id == profile_id {
+                let profile = self.profile_service.get(profile_id)?;
+                let config = SpinnerVerbsConfig {
+                    mode: profile.mode.clone(),
+                    verbs: profile.entries.iter().map(format_spinner_text).collect(),
+                };
+                self.spinner_config_service.write(&config)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn write_app_settings(&self, settings: &AppSettings) -> Result<(), String> {
         let content = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;
         let tmp = self.paths.app_settings_path.with_extension("tmp");
@@ -64,6 +82,7 @@ pub fn run() {
             if let Ok(app_settings) = state.read_app_settings() {
                 if let Some(ref profile_id) = app_settings.active_profile_id {
                     let _ = state.profile_service.get(profile_id);
+                    let _ = state.sync_active_profile(profile_id);
                 }
             }
 

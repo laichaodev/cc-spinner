@@ -10,7 +10,7 @@ interface Props {
   onReorder: (from: number, to: number) => void;
 }
 
-export function EntryTable({ entries, onUpdate, onDelete }: Props) {
+export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const toggleSelect = (index: number) => {
@@ -55,9 +55,13 @@ export function EntryTable({ entries, onUpdate, onDelete }: Props) {
               index={i}
               entry={entry}
               isSelected={selected.has(i)}
+              isFirst={i === 0}
+              isLast={i === entries.length - 1}
               onToggleSelect={() => toggleSelect(i)}
               onUpdate={(e) => onUpdate(i, e)}
               onDelete={() => onDelete([i])}
+              onMoveUp={() => onReorder(i, i - 1)}
+              onMoveDown={() => onReorder(i, i + 1)}
             />
           ))
         )}

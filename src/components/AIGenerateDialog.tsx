@@ -29,8 +29,8 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
       const entries = await aiApi.generate(words);
       setResults(entries);
     } catch (e: any) {
-      if (e === "API_KEY_NOT_SET" || String(e).includes("API_KEY_NOT_SET")) {
-        setError("未配置 Anthropic API Key。请在 ~/.cc-spinner/.env 文件中写入 API Key。");
+      if (String(e).includes("API_KEY_NOT_SET")) {
+        setError("未配置 API Key 且本地未安装 claude CLI。请配置 ~/.cc-spinner/.env 中的 API Key，或安装 Claude Code。");
       } else if (String(e) === "Cancelled") {
         setError("已取消");
       } else {

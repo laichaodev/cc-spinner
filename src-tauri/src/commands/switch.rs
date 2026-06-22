@@ -25,7 +25,16 @@ pub fn switch_profile(state: State<AppState>, id: String) -> Result<(), String> 
 pub fn get_active_profile(state: State<AppState>) -> Result<Option<Profile>, String> {
     let app_settings = state.read_app_settings()?;
     match app_settings.active_profile_id {
-        Some(id) => state.profile_service.get(&id).map(Some),
+        Some(ref id) => match state.profile_service.get(id) {
+            Ok(profile) => Ok(Some(profile)),
+            Err(_) => {
+                // Profile was deleted externally — clear stale reference
+                let mut settings = app_settings;
+                settings.active_profile_id = None;
+                state.write_app_settings(&settings)?;
+                Ok(None)
+            }
+        },
         None => Ok(None),
     }
 }

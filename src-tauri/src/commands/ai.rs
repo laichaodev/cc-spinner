@@ -16,33 +16,23 @@ pub async fn ai_generate(
         .unwrap()
         .join(".env");
 
-    let api_key = if env_path.exists() {
-        std::fs::read_to_string(&env_path)
-            .unwrap_or_default()
-            .trim()
-            .to_string()
+    let service = if let Ok(key) = std::fs::read_to_string(&env_path) {
+        let key = key.trim().to_string();
+        if !key.is_empty() {
+            AiGenerateService::new_api(key)
+        } else {
+            AiGenerateService::new_cli()
+        }
     } else {
-        return Err("API_KEY_NOT_SET".to_string());
+        AiGenerateService::new_cli()
     };
 
-    if api_key.is_empty() {
-        return Err("API_KEY_NOT_SET".to_string());
-    }
-
-    let service = AiGenerateService::new(api_key);
-
-    // Store for cancellation
+    // Store for cancellation (share the same Arc<AtomicBool>)
     {
         let mut guard = state.ai_service.lock().map_err(|e| e.to_string())?;
-        *guard = Some(AiGenerateService::new(
-            std::fs::read_to_string(&env_path)
-                .unwrap_or_default()
-                .trim()
-                .to_string(),
-        ));
+        *guard = Some(service.clone());
     }
 
-    let _total = words.len();
     let result = service
         .generate(words, |current, total| {
             let _ = app_handle.emit(

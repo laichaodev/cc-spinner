@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, AlertCircle, X } from "lucide-react";
 import type { Profile } from "@/lib/api/profiles";
 import { ProfileItem } from "./ProfileItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,13 @@ export function Sidebar({
 }: Props) {
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   const createMutation = useMutation({
     mutationFn: () => profilesApi.create(newName, "append"),
@@ -29,10 +36,20 @@ export function Sidebar({
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       setNewName("");
     },
+    onError: (e: any) => setError(String(e)),
   });
 
   return (
     <div className="flex w-56 flex-col border-r border-zinc-800 bg-zinc-900">
+      {error && (
+        <div className="flex items-center gap-1.5 border-b border-red-900/30 bg-red-950/30 px-2 py-1.5">
+          <AlertCircle size={12} className="text-red-400 shrink-0" />
+          <span className="flex-1 text-[10px] text-red-300 truncate">{error}</span>
+          <button className="text-red-400 hover:text-red-300" onClick={() => setError(null)}>
+            <X size={12} />
+          </button>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-2">
         {profiles.map((p) => (
           <ProfileItem
@@ -42,6 +59,7 @@ export function Sidebar({
             isSelected={p.id === selectedProfileId}
             onSelect={() => onSelect(p.id)}
             onSwitch={() => onSwitch(p.id)}
+            onError={(msg) => setError(msg)}
           />
         ))}
         {profiles.length === 0 && (

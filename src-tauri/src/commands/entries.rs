@@ -12,6 +12,7 @@ pub fn add_entries(
     profile.entries.extend(entries);
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
+    state.sync_active_profile(&profile_id)?;
     Ok(profile)
 }
 
@@ -29,6 +30,7 @@ pub fn update_entry(
     profile.entries[index] = entry;
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
+    state.sync_active_profile(&profile_id)?;
     Ok(profile)
 }
 
@@ -50,6 +52,7 @@ pub fn delete_entries(
     }
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
+    state.sync_active_profile(&profile_id)?;
     Ok(profile)
 }
 
@@ -68,6 +71,7 @@ pub fn reorder_entries(
     profile.entries.insert(to_index, entry);
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
+    state.sync_active_profile(&profile_id)?;
     Ok(profile)
 }
 
@@ -94,5 +98,6 @@ pub fn import_words(
     profile.entries.extend(entries);
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
+    state.sync_active_profile(&profile_id)?;
     Ok(profile)
 }

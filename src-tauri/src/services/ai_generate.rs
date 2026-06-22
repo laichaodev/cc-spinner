@@ -9,15 +9,29 @@ struct AiResponseEntry {
     gloss: String,
 }
 
+#[derive(Clone)]
+pub(crate) enum AiBackend {
+    Api { api_key: String },
+    Cli,
+}
+
+#[derive(Clone)]
 pub struct AiGenerateService {
-    api_key: String,
-    cancelled: Arc<AtomicBool>,
+    pub(crate) backend: AiBackend,
+    pub(crate) cancelled: Arc<AtomicBool>,
 }
 
 impl AiGenerateService {
-    pub fn new(api_key: String) -> Self {
+    pub fn new_api(api_key: String) -> Self {
         Self {
-            api_key,
+            backend: AiBackend::Api { api_key },
+            cancelled: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    pub fn new_cli() -> Self {
+        Self {
+            backend: AiBackend::Cli,
             cancelled: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -39,8 +53,9 @@ impl AiGenerateService {
         let total = words.len();
         let batch_size = 20;
         let mut results = Vec::new();
+        let mut processed = 0;
 
-        for (batch_idx, chunk) in words.chunks(batch_size).enumerate() {
+        for chunk in words.chunks(batch_size) {
             if self.cancelled() {
                 return Err("Cancelled".to_string());
             }
@@ -59,25 +74,32 @@ impl AiGenerateService {
                 }
             }
 
-            progress_callback(
-                (batch_idx + 1) * batch_size.min(chunk.len()),
-                total,
-            );
+            processed += chunk.len();
+            progress_callback(processed, total);
         }
 
         Ok(results)
     }
 
     async fn generate_batch(&self, words: &[&str]) -> Result<Vec<SpinnerEntry>, String> {
-        let system_prompt = r#"你是一个词汇学习助手。用户会提供英语动词列表，请为每个动词生成展示注释（gloss），格式为 "emoji — 场景描述"，帮助记忆该词：
+        match &self.backend {
+            AiBackend::Api { api_key } => self.generate_batch_via_api(words, api_key).await,
+            AiBackend::Cli => self.generate_batch_via_cli(words).await,
+        }
+    }
 
-1. emoji：最能表达该动词含义的 Emoji（1-2 个字符）
-2. 一句简短的中文场景描述（10-20 字）
+    async fn generate_batch_via_api(
+        &self,
+        words: &[&str],
+        api_key: &str,
+    ) -> Result<Vec<SpinnerEntry>, String> {
+        let system_prompt = self.system_prompt();
 
-以 JSON 数组格式返回，只返回 JSON，不要其他文字：
-[{"verb": "Pondering", "gloss": "🤔 — 正在思考方案利弊"}]"#;
-
-        let word_list: String = words.iter().map(|w| format!("- {w}")).collect::<Vec<_>>().join("\n");
+        let word_list: String = words
+            .iter()
+            .map(|w| format!("- {w}"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let user_message = format!("输入动词列表：\n{word_list}");
 
         let client = reqwest::Client::new();
@@ -85,7 +107,7 @@ impl AiGenerateService {
         loop {
             let resp = client
                 .post("https://api.anthropic.com/v1/messages")
-                .header("x-api-key", &self.api_key)
+                .header("x-api-key", api_key)
                 .header("anthropic-version", "2023-06-01")
                 .header("content-type", "application/json")
                 .json(&serde_json::json!({
@@ -117,6 +139,44 @@ impl AiGenerateService {
                 Err(e) => return Err(format!("Network error: {e}")),
             }
         }
+    }
+
+    async fn generate_batch_via_cli(&self, words: &[&str]) -> Result<Vec<SpinnerEntry>, String> {
+        let system_prompt = self.system_prompt();
+
+        let word_list: String = words
+            .iter()
+            .map(|w| format!("- {w}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let user_message = format!("输入动词列表：\n{word_list}");
+
+        let output = tokio::process::Command::new("claude")
+            .arg("-p")
+            .arg("--system-prompt")
+            .arg(system_prompt)
+            .arg(&user_message)
+            .output()
+            .await
+            .map_err(|e| format!("无法运行 claude CLI: {e}"))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("claude CLI 错误: {}", stderr));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        self.parse_response(&stdout)
+    }
+
+    fn system_prompt(&self) -> &'static str {
+        r#"你是一个词汇学习助手。用户会提供英语动词列表，请为每个动词生成展示注释（gloss），格式为 "emoji — 场景描述"，帮助记忆该词：
+
+1. emoji：最能表达该动词含义的 Emoji（1-2 个字符）
+2. 一句简短的中文场景描述（10-20 字）
+
+以 JSON 数组格式返回，只返回 JSON，不要其他文字：
+[{"verb": "Pondering", "gloss": "🤔 — 正在思考方案利弊"}]"#
     }
 
     fn parse_response(&self, text: &str) -> Result<Vec<SpinnerEntry>, String> {

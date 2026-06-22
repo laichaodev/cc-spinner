@@ -9,6 +9,7 @@ interface Props {
   isSelected: boolean;
   onSelect: () => void;
   onSwitch: () => void;
+  onError?: (msg: string) => void;
 }
 
 export function ProfileItem({
@@ -17,17 +18,20 @@ export function ProfileItem({
   isSelected,
   onSelect,
   onSwitch,
+  onError,
 }: Props) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: () => profilesApi.delete(profile.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profiles"] }),
+    onError: (e: any) => onError?.(String(e)),
   });
 
   const dupMutation = useMutation({
     mutationFn: () => profilesApi.duplicate(profile.id, `${profile.name} (副本)`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profiles"] }),
+    onError: (e: any) => onError?.(String(e)),
   });
 
   return (

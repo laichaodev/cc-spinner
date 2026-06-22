@@ -27,6 +27,14 @@ export const profilesApi = {
     invoke<Profile>("import_profile", { filePath }),
   export: (id: string, filePath: string) =>
     invoke<void>("export_profile", { id, filePath }),
+  addEntries: (profileId: string, entries: SpinnerEntry[]) =>
+    invoke<Profile>("add_entries", { profileId, entries }),
+  updateEntry: (profileId: string, index: number, entry: SpinnerEntry) =>
+    invoke<Profile>("update_entry", { profileId, index, entry }),
+  deleteEntries: (profileId: string, indices: number[]) =>
+    invoke<Profile>("delete_entries", { profileId, indices }),
+  reorderEntries: (profileId: string, fromIndex: number, toIndex: number) =>
+    invoke<Profile>("reorder_entries", { profileId, fromIndex, toIndex }),
   switch: (id: string) => invoke<void>("switch_profile", { id }),
   getActive: () => invoke<Profile | null>("get_active_profile"),
 };

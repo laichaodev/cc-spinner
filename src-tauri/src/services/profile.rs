@@ -47,6 +47,10 @@ impl ProfileService {
         Ok(())
     }
 
+    pub fn exists(&self, id: &str) -> bool {
+        self.profile_path(id).exists()
+    }
+
     pub fn delete(&self, id: &str) -> Result<(), String> {
         let path = self.profile_path(id);
         fs::remove_file(&path).map_err(|e| format!("Failed to delete: {e}"))
@@ -81,18 +85,4 @@ pub fn slugify(name: &str) -> String {
 
 pub fn format_spinner_text(entry: &SpinnerEntry) -> String {
     format!("{} {}", entry.verb, entry.gloss)
-}
-
-pub fn extract_verb(spinner_text: &str) -> &str {
-    spinner_text.split(' ').next().unwrap_or(spinner_text)
-}
-
-/// Jaccard similarity between two string slices
-pub fn jaccard_similarity(a: &[String], b: &[&str]) -> f64 {
-    use std::collections::HashSet;
-    let set_a: HashSet<&str> = a.iter().map(|s| s.as_str()).collect();
-    let set_b: HashSet<&str> = b.iter().copied().collect();
-    let intersection = set_a.intersection(&set_b).count();
-    let union = set_a.union(&set_b).count();
-    if union == 0 { 1.0 } else { intersection as f64 / union as f64 }
 }

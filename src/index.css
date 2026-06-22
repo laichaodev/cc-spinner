@@ -1,3 +1,18 @@
+@font-face {
+  font-family: "SimHei";
+  src: url("/fonts/simhei.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "SimHei", "Microsoft YaHei", "PingFang SC", "Noto Sans SC",
+      ui-sans-serif, system-ui, sans-serif;
+  }
+}
