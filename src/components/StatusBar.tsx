@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Profile } from "@/lib/api/profiles";
 import { settingsApi } from "@/lib/api/settings";
 import { useT } from "@/lib/i18n/context";
-import { Sun, Moon, Languages } from "lucide-react";
+import { Sun, Moon, Globe } from "lucide-react";
 
 interface Props {
   activeProfile: Profile | null;
@@ -65,8 +65,8 @@ export function StatusBar({ activeProfile }: Props) {
           onClick={toggleLang}
           title={lang === "zh" ? t("status.switchZh") : t("status.switchEn")}
         >
-          <Languages size={12} />
-          <span className="ml-0.5">{lang === "zh" ? "EN" : "中"}</span>
+          <Globe size={12} />
+          <span className="ml-0.5 text-[10px]">{lang === "zh" ? "EN" : "中"}</span>
         </button>
         <button
           className="rounded p-0.5 text-[var(--color-text-subtle)] hover:text-[var(--color-text)] transition-colors"
