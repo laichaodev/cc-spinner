@@ -140,6 +140,9 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
         onReorder={(from, to) =>
           reorderMutation.mutate({ id: profile.id, from, to })
         }
+        onSetEntries={(entries) =>
+          profilesApi.update(profile.id, { entries }).then(onProfileUpdated).catch((e) => setError(String(e)))
+        }
       />
       {showAiDialog && (
         <AIGenerateDialog

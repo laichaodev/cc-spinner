@@ -1,20 +1,36 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { EntryRow } from "./EntryRow";
-import { Trash2 } from "lucide-react";
+import { Trash2, ArrowUpDown } from "lucide-react";
 
 interface Props {
   entries: SpinnerEntry[];
   onUpdate: (index: number, entry: SpinnerEntry) => void;
   onDelete: (indices: number[]) => void;
   onReorder: (from: number, to: number) => void;
+  onSetEntries?: (entries: SpinnerEntry[]) => void;
 }
 
-export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
+const localeCompare = (a: string, b: string) => a.localeCompare(b, "zh");
+
+export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntries }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleSort = () => {
+    if (!onSetEntries) return;
+    const next = sortDir === "asc" ? "desc" : "asc";
+    setSortDir(next);
+    const sorted = [...entries].sort((a, b) =>
+      next === "asc"
+        ? localeCompare(a.verb, b.verb)
+        : localeCompare(b.verb, a.verb)
+    );
+    onSetEntries(sorted);
+  };
 
   const toggleSelect = (index: number) => {
     setSelected((prev) => {
@@ -123,7 +139,15 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
           onChange={toggleSelectAll}
           className="h-3 w-3 shrink-0 rounded border-zinc-400 dark:border-zinc-600 bg-[var(--color-surface-hover)] accent-emerald-500"
         />
-        <span className="w-36 text-[11px] font-medium text-[var(--color-text-muted)]">VERB</span>
+        <button
+          className="w-36 flex items-center gap-1 text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          onClick={toggleSort}
+        >
+          VERB
+          <ArrowUpDown size={10} className="text-emerald-500" />
+          {sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
+          {sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
+        </button>
         <span className="flex-1 text-[11px] font-medium text-[var(--color-text-muted)]">GLOSS</span>
         {selected.size > 0 && (
           <button
