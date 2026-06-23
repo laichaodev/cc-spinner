@@ -12,6 +12,7 @@ export interface Profile {
 export interface SpinnerEntry {
   verb: string;
   gloss: string;
+  updated_at?: string;
 }
 
 export const profilesApi = {

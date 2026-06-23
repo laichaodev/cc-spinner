@@ -2,6 +2,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { Trash2, GripVertical } from "lucide-react";
 
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 interface Props {
   index: number;
   entry: SpinnerEntry;
@@ -89,6 +95,9 @@ export function EntryRow({
         }}
         placeholder="注释（emoji + 场景描述）"
       />
+      <span className="w-14 shrink-0 text-right text-[10px] text-[var(--color-text-subtle)]">
+        {entry.updated_at ? formatTime(entry.updated_at) : "—"}
+      </span>
       <button
         className="rounded p-1 text-[var(--color-text-subtle)] opacity-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100"
         onClick={onDelete}

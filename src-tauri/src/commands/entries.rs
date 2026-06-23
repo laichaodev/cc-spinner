@@ -8,9 +8,17 @@ pub fn add_entries(
     profile_id: String,
     entries: Vec<SpinnerEntry>,
 ) -> Result<Profile, String> {
+    let now = chrono::Utc::now().to_rfc3339();
     let mut profile = state.profile_service.get(&profile_id)?;
-    profile.entries.extend(entries);
-    profile.updated_at = chrono::Utc::now().to_rfc3339();
+    let stamped: Vec<SpinnerEntry> = entries
+        .into_iter()
+        .map(|mut e| {
+            e.updated_at = Some(now.clone());
+            e
+        })
+        .collect();
+    profile.entries.extend(stamped);
+    profile.updated_at = now;
     state.profile_service.save(&profile)?;
     state.sync_active_profile(&profile_id)?;
     Ok(profile)
@@ -27,6 +35,8 @@ pub fn update_entry(
     if index >= profile.entries.len() {
         return Err("Index out of bounds".to_string());
     }
+    let mut entry = entry;
+    entry.updated_at = Some(chrono::Utc::now().to_rfc3339());
     profile.entries[index] = entry;
     profile.updated_at = chrono::Utc::now().to_rfc3339();
     state.profile_service.save(&profile)?;
@@ -87,11 +97,13 @@ pub fn import_words(
         .map(|l| l.trim().to_string())
         .filter(|l| !l.is_empty())
         .collect();
+    let now = chrono::Utc::now().to_rfc3339();
     let entries: Vec<SpinnerEntry> = words
         .into_iter()
         .map(|verb| SpinnerEntry {
             verb,
             gloss: String::new(),
+            updated_at: Some(now.clone()),
         })
         .collect();
     let mut profile = state.profile_service.get(&profile_id)?;

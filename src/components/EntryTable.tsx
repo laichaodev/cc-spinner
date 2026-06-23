@@ -19,19 +19,27 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortKey, setSortKey] = useState<"verb" | "time">("verb");
   const [newVerb, setNewVerb] = useState("");
   const [newGloss, setNewGloss] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleSort = () => {
+  const toggleSort = (key: "verb" | "time") => {
     if (!onSetEntries) return;
-    const next = sortDir === "asc" ? "desc" : "asc";
+    const next = sortKey === key && sortDir === "asc" ? "desc" : "asc";
+    setSortKey(key);
     setSortDir(next);
-    const sorted = [...entries].sort((a, b) =>
-      next === "asc"
-        ? localeCompare(a.verb, b.verb)
-        : localeCompare(b.verb, a.verb)
-    );
+    const sorted = [...entries].sort((a, b) => {
+      if (key === "verb") {
+        return next === "asc"
+          ? localeCompare(a.verb, b.verb)
+          : localeCompare(b.verb, a.verb);
+      } else {
+        const ta = a.updated_at ?? "";
+        const tb = b.updated_at ?? "";
+        return next === "asc" ? ta.localeCompare(tb) : tb.localeCompare(ta);
+      }
+    });
     onSetEntries(sorted);
   };
 
@@ -151,14 +159,23 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
         />
         <button
           className="w-36 flex items-center gap-1 text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-          onClick={toggleSort}
+          onClick={() => toggleSort("verb")}
         >
           VERB
-          <ArrowUpDown size={10} className="text-emerald-500" />
-          {sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
-          {sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
+          {sortKey === "verb" && <ArrowUpDown size={10} className="text-emerald-500" />}
+          {sortKey === "verb" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
+          {sortKey === "verb" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
         </button>
         <span className="flex-1 text-[11px] font-medium text-[var(--color-text-muted)]">GLOSS</span>
+        <button
+          className="w-14 text-right text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          onClick={() => toggleSort("time")}
+        >
+          时间
+          {sortKey === "time" && <ArrowUpDown size={10} className="text-emerald-500 inline ml-0.5" />}
+          {sortKey === "time" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
+          {sortKey === "time" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
+        </button>
         {selected.size > 0 && (
           <button
             className="flex shrink-0 items-center gap-1 rounded px-2 py-0.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
@@ -211,6 +228,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
               onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
               placeholder="注释"
             />
+            <div className="w-14 shrink-0" />
             <button
               className="rounded p-1 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-30"
               onClick={handleAdd}

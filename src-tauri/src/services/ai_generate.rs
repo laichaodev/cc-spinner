@@ -49,10 +49,12 @@ impl AiGenerateService {
             match self.generate_batch(&batch_words).await {
                 Ok(entries) => results.extend(entries),
                 Err(e) => {
+                    let now = chrono::Utc::now().to_rfc3339();
                     for word in &batch_words {
                         results.push(SpinnerEntry {
                             verb: word.to_string(),
                             gloss: format!("[生成失败] {e}"),
+                            updated_at: Some(now.clone()),
                         });
                     }
                 }
@@ -115,11 +117,13 @@ impl AiGenerateService {
         let entries: Vec<AiResponseEntry> =
             serde_json::from_str(json_str).map_err(|e| format!("JSON parse error: {e}"))?;
 
+        let now = chrono::Utc::now().to_rfc3339();
         Ok(entries
             .into_iter()
             .map(|e| SpinnerEntry {
                 verb: e.verb,
                 gloss: e.gloss,
+                updated_at: Some(now.clone()),
             })
             .collect())
     }
