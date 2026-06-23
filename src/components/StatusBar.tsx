@@ -12,13 +12,13 @@ export function StatusBar({ activeProfile }: Props) {
     if (typeof document !== "undefined") {
       return document.documentElement.classList.contains("dark") ? "dark" : "light";
     }
-    return "dark";
+    return "light";
   });
 
   useEffect(() => {
     // Load theme from settings on mount
     settingsApi.get().then((s) => {
-      const t = s.theme === "system" ? "dark" : s.theme;
+      const t = s.theme === "dark" ? "dark" : "light";
       setTheme(t === "dark" ? "dark" : "light");
       if (t === "dark") {
         document.documentElement.classList.add("dark");

@@ -43,7 +43,7 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             active_profile_id: None,
-            theme: "system".to_string(),
+            theme: "light".to_string(),
             window_bounds: WindowBounds {
                 x: 100,
                 y: 100,
