@@ -26,8 +26,8 @@ export const strings: Record<Lang, Record<string, string>> = {
     "toolbar.aiGen": "AI 生成",
 
     // EntryTable
-    "entry.verb": "VERB",
-    "entry.gloss": "GLOSS",
+    "entry.verb": "动词",
+    "entry.gloss": "注释",
     "entry.time": "时间",
     "entry.deleteSelected": "删除选中",
     "entry.empty": "暂无词条，使用「AI 生成」或「导入 .txt」添加",
