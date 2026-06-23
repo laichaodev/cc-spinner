@@ -12,12 +12,10 @@ interface Props {
   onUpdate: (entry: SpinnerEntry) => void;
   onDelete: () => void;
   onDragStart: () => void;
-  onDragOver: () => void;
-  onDrop: () => void;
-  onDragEnd: () => void;
 }
 
 export function EntryRow({
+  index,
   entry,
   isSelected,
   isDragging,
@@ -26,9 +24,6 @@ export function EntryRow({
   onUpdate,
   onDelete,
   onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
 }: Props) {
   const [verb, setVerb] = useState(entry.verb);
   const [gloss, setGloss] = useState(entry.gloss);
@@ -57,24 +52,24 @@ export function EntryRow({
 
   return (
     <div
+      data-row-index={index}
       className={`group flex items-center gap-3 border-b border-zinc-800/50 px-4 py-1.5 transition-colors hover:bg-zinc-900 ${
         isSelected ? "bg-zinc-800/50" : ""
-      } ${isDragging ? "opacity-40" : ""} ${isDragOver ? "border-t-2 border-t-emerald-400" : ""}`}
+      } ${isDragging ? "opacity-40" : ""} ${
+        isDragOver ? "border-t-2 border-t-emerald-400" : ""
+      }`}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = "move";
+        // Set a custom drag image offset so it looks natural
+        if (e.currentTarget instanceof HTMLElement) {
+          e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+        }
         onDragStart();
       }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        onDragOver();
+      onDragEnd={() => {
+        // Cleanup handled by parent via onDragStart tracking
       }}
-      onDrop={(e) => {
-        e.preventDefault();
-        onDrop();
-      }}
-      onDragEnd={onDragEnd}
     >
       <div className="shrink-0 cursor-grab text-zinc-600 opacity-0 group-hover:opacity-100 active:cursor-grabbing">
         <GripVertical size={14} />

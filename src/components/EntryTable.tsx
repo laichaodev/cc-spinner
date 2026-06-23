@@ -16,6 +16,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragIndexRef = useRef<number | null>(null);
   const dragOverRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleSelect = (index: number) => {
     setSelected((prev) => {
@@ -32,36 +33,45 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
     setSelected(new Set());
   };
 
-  const handleDrop = useCallback(() => {
-    const from = dragIndexRef.current;
-    const to = dragOverRef.current;
-    if (from !== null && to !== null && from !== to) {
-      onReorder(from, to);
-    }
-    dragIndexRef.current = null;
-    dragOverRef.current = null;
-    setDragIndex(null);
-    setDragOverIndex(null);
-  }, [onReorder]);
-
   const handleDragStart = useCallback((index: number) => {
     dragIndexRef.current = index;
     setDragIndex(index);
   }, []);
 
-  const handleDragOver = useCallback((index: number) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    // Find which row is under the cursor via DOM
+    const target = (e.target as HTMLElement).closest('[data-row-index]');
+    if (!target) return;
+
+    const index = parseInt(target.getAttribute('data-row-index')!, 10);
+    if (isNaN(index)) return;
+
     if (dragOverRef.current !== index) {
       dragOverRef.current = index;
       setDragOverIndex(index);
     }
   }, []);
 
-  const handleDragEnd = useCallback(() => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+
+    const from = dragIndexRef.current;
+    // Find drop target from DOM
+    const target = (e.target as HTMLElement).closest('[data-row-index]');
+    const to = target ? parseInt(target.getAttribute('data-row-index')!, 10) : null;
+
+    if (from !== null && to !== null && from !== to) {
+      onReorder(from, to);
+    }
+
     dragIndexRef.current = null;
     dragOverRef.current = null;
     setDragIndex(null);
     setDragOverIndex(null);
-  }, []);
+  }, [onReorder]);
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -78,7 +88,12 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
           </button>
         )}
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         {entries.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-xs text-zinc-600">
             暂无词条，使用「AI 生成」或「导入 .txt」添加
@@ -96,9 +111,6 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
               onUpdate={(e) => onUpdate(i, e)}
               onDelete={() => onDelete([i])}
               onDragStart={() => handleDragStart(i)}
-              onDragOver={() => handleDragOver(i)}
-              onDrop={handleDrop}
-              onDragEnd={handleDragEnd}
             />
           ))
         )}
