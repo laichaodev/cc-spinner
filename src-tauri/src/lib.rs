@@ -97,6 +97,8 @@ pub fn run() {
             commands::duplicate_profile,
             commands::import_profile,
             commands::export_profile,
+            commands::rename_profile,
+            commands::reorder_profiles,
             commands::add_entries,
             commands::update_entry,
             commands::delete_entries,

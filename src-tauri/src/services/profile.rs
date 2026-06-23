@@ -27,7 +27,7 @@ impl ProfileService {
                 }
             }
         }
-        profiles.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
+        profiles.sort_by(|a, b| a.sort_order.cmp(&b.sort_order).then(b.updated_at.cmp(&a.updated_at)));
         Ok(profiles)
     }
 
@@ -57,6 +57,11 @@ impl ProfileService {
     }
 
     pub fn create(&self, name: &str, mode: &str) -> Result<Profile, String> {
+        let max_order = self.list()?.iter().map(|p| p.sort_order).max().unwrap_or(0);
+        self.create_with_order(name, mode, max_order + 1)
+    }
+
+    pub fn create_with_order(&self, name: &str, mode: &str, order: i32) -> Result<Profile, String> {
         let id = slugify(name);
         let now = chrono::Utc::now().to_rfc3339();
         let profile = Profile {
@@ -64,6 +69,7 @@ impl ProfileService {
             name: name.to_string(),
             mode: mode.to_string(),
             entries: vec![],
+            sort_order: order,
             created_at: now.clone(),
             updated_at: now,
         };

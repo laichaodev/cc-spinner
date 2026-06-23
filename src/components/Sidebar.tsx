@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, AlertCircle, X } from "lucide-react";
 import type { Profile } from "@/lib/api/profiles";
 import { ProfileItem } from "./ProfileItem";
@@ -25,6 +25,9 @@ export function Sidebar({
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!error) return;
@@ -41,6 +44,82 @@ export function Sidebar({
     onError: (e: any) => setError(String(e)),
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: (ids: string[]) => profilesApi.reorder(ids),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profiles"] }),
+  });
+
+  const handleDragStart = useCallback((index: number, e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rows = container.querySelectorAll('[data-profile-index]');
+    let lastClientY = e.clientY;
+
+    setDragIndex(index);
+
+    const onMouseMove = (ev: MouseEvent) => {
+      lastClientY = ev.clientY;
+      ev.preventDefault();
+
+      let target = index;
+      let minDist = Infinity;
+      rows.forEach((row) => {
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dist = Math.abs(ev.clientY - midY);
+        if (dist < minDist) {
+          minDist = dist;
+          const idx = parseInt(row.getAttribute('data-profile-index')!, 10);
+          if (!isNaN(idx)) target = idx;
+        }
+      });
+      setDragOverIndex(target !== index ? target : null);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+
+      let target = index;
+      let minDist = Infinity;
+      rows.forEach((row) => {
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dist = Math.abs(lastClientY - midY);
+        if (dist < minDist) {
+          minDist = dist;
+          const idx = parseInt(row.getAttribute('data-profile-index')!, 10);
+          if (!isNaN(idx)) target = idx;
+        }
+      });
+
+      if (target !== index) {
+        const newProfiles = [...profiles];
+        const [item] = newProfiles.splice(index, 1);
+        newProfiles.splice(target, 0, item);
+        reorderMutation.mutate(newProfiles.map((p) => p.id));
+      }
+
+      setDragIndex(null);
+      setDragOverIndex(null);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [profiles, reorderMutation]);
+
+  const handleRename = useCallback((id: string, newName: string) => {
+    if (!newName.trim()) return;
+    profilesApi.rename(id, newName.trim()).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["activeProfile"] });
+    }).catch((e) => setError(String(e)));
+  }, []);
+
   return (
     <div className="flex w-56 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
       {error && (
@@ -52,17 +131,22 @@ export function Sidebar({
           </button>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-2">
-        {profiles.map((p) => (
-          <ProfileItem
-            key={p.id}
-            profile={p}
-            isActive={p.id === activeProfileId}
-            isSelected={p.id === selectedProfileId}
-            onSelect={() => onSelect(p.id)}
-            onSwitch={() => onSwitch(p.id)}
-            onError={(msg) => setError(msg)}
-          />
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-2">
+        {profiles.map((p, i) => (
+          <div key={p.id} data-profile-index={i}>
+            <ProfileItem
+              profile={p}
+              isActive={p.id === activeProfileId}
+              isSelected={p.id === selectedProfileId}
+              isDragging={dragIndex === i}
+              isDragOver={dragOverIndex === i}
+              onSelect={() => onSelect(p.id)}
+              onSwitch={() => onSwitch(p.id)}
+              onRename={(newName) => handleRename(p.id, newName)}
+              onDragStart={(e) => handleDragStart(i, e)}
+              onError={(msg) => setError(msg)}
+            />
+          </div>
         ))}
         {profiles.length === 0 && (
           <p className="px-3 py-4 text-xs text-[var(--color-text-muted)]">{t("sidebar.empty")}</p>

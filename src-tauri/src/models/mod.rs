@@ -8,6 +8,8 @@ pub struct Profile {
     pub entries: Vec<SpinnerEntry>,
     pub created_at: String,
     pub updated_at: String,
+    #[serde(default)]
+    pub sort_order: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

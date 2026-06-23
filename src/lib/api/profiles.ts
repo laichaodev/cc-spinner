@@ -5,6 +5,7 @@ export interface Profile {
   name: string;
   mode: "replace" | "append";
   entries: SpinnerEntry[];
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +37,9 @@ export const profilesApi = {
     invoke<Profile>("delete_entries", { profileId, indices }),
   reorderEntries: (profileId: string, fromIndex: number, toIndex: number) =>
     invoke<Profile>("reorder_entries", { profileId, fromIndex, toIndex }),
+  rename: (id: string, newName: string) =>
+    invoke<Profile>("rename_profile", { id, newName }),
+  reorder: (ids: string[]) => invoke<void>("reorder_profiles", { ids }),
   switch: (id: string) => invoke<void>("switch_profile", { id }),
   getActive: () => invoke<Profile | null>("get_active_profile"),
 };
