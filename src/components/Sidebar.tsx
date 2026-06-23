@@ -63,13 +63,13 @@ export function Sidebar({
           />
         ))}
         {profiles.length === 0 && (
-          <p className="px-3 py-4 text-xs text-zinc-500">暂无 Profile，点击下方按钮创建</p>
+          <p className="px-3 py-4 text-xs text-zinc-500">暂无词组，点击下方按钮创建</p>
         )}
       </div>
       <div className="border-t border-zinc-800 p-2">
         <input
           className="w-full rounded bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500"
-          placeholder="Profile 名称"
+          placeholder="词组名称"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => {

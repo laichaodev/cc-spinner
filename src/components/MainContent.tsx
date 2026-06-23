@@ -92,7 +92,7 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
   if (!profile) {
     return (
       <div className="flex flex-1 items-center justify-center text-zinc-500">
-        选择或创建一个 Profile
+        选择或创建一个词组
       </div>
     );
   }

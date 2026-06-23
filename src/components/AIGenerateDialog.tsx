@@ -115,7 +115,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                   className="flex-1 rounded bg-emerald-600 py-2 text-sm font-medium text-white hover:bg-emerald-500"
                   onClick={handleAddAll}
                 >
-                  添加到 Profile
+                  添加到词组
                 </button>
                 <button
                   className="rounded bg-zinc-800 px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-700"

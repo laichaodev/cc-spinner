@@ -11,7 +11,7 @@ interface Props {
   onToggleSelect: () => void;
   onUpdate: (entry: SpinnerEntry) => void;
   onDelete: () => void;
-  onDragStart: () => void;
+  onDragStart: (e: React.MouseEvent) => void;
 }
 
 export function EntryRow({
@@ -58,20 +58,11 @@ export function EntryRow({
       } ${isDragging ? "opacity-40" : ""} ${
         isDragOver ? "border-t-2 border-t-emerald-400" : ""
       }`}
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        // Set a custom drag image offset so it looks natural
-        if (e.currentTarget instanceof HTMLElement) {
-          e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
-        }
-        onDragStart();
-      }}
-      onDragEnd={() => {
-        // Cleanup handled by parent via onDragStart tracking
-      }}
     >
-      <div className="shrink-0 cursor-grab text-zinc-600 opacity-0 group-hover:opacity-100 active:cursor-grabbing">
+      <div
+        className="shrink-0 cursor-grab text-zinc-600 opacity-0 group-hover:opacity-100 active:cursor-grabbing"
+        onMouseDown={onDragStart}
+      >
         <GripVertical size={14} />
       </div>
       <input

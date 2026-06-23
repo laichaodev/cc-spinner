@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { EntryRow } from "./EntryRow";
 import { Trash2 } from "lucide-react";
@@ -14,8 +14,6 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
-  const dragOverRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleSelect = (index: number) => {
@@ -33,45 +31,75 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
     setSelected(new Set());
   };
 
-  const handleDragStart = useCallback((index: number) => {
-    dragIndexRef.current = index;
+  const handleMouseDown = useCallback((index: number, e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rows = container.querySelectorAll('[data-row-index]');
+    let lastClientY = e.clientY;
+
     setDragIndex(index);
-  }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    const onMouseMove = (ev: MouseEvent) => {
+      lastClientY = ev.clientY;
+      ev.preventDefault();
 
-    // Find which row is under the cursor via DOM
-    const target = (e.target as HTMLElement).closest('[data-row-index]');
-    if (!target) return;
+      let targetIndex = index;
+      let minDist = Infinity;
 
-    const index = parseInt(target.getAttribute('data-row-index')!, 10);
-    if (isNaN(index)) return;
+      rows.forEach((row) => {
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dist = Math.abs(ev.clientY - midY);
+        if (dist < minDist) {
+          minDist = dist;
+          const idx = parseInt(row.getAttribute('data-row-index')!, 10);
+          if (!isNaN(idx)) targetIndex = idx;
+        }
+      });
 
-    if (dragOverRef.current !== index) {
-      dragOverRef.current = index;
-      setDragOverIndex(index);
-    }
-  }, []);
+      setDragOverIndex(targetIndex !== index ? targetIndex : null);
+    };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
 
-    const from = dragIndexRef.current;
-    // Find drop target from DOM
-    const target = (e.target as HTMLElement).closest('[data-row-index]');
-    const to = target ? parseInt(target.getAttribute('data-row-index')!, 10) : null;
+      let targetIndex = index;
+      let minDist = Infinity;
+      rows.forEach((row) => {
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dist = Math.abs(lastClientY - midY);
+        if (dist < minDist) {
+          minDist = dist;
+          const idx = parseInt(row.getAttribute('data-row-index')!, 10);
+          if (!isNaN(idx)) targetIndex = idx;
+        }
+      });
 
-    if (from !== null && to !== null && from !== to) {
-      onReorder(from, to);
-    }
+      if (targetIndex !== index) {
+        onReorder(index, targetIndex);
+      }
 
-    dragIndexRef.current = null;
-    dragOverRef.current = null;
-    setDragIndex(null);
-    setDragOverIndex(null);
+      setDragIndex(null);
+      setDragOverIndex(null);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }, [onReorder]);
+
+  // Cleanup listeners on unmount
+  useEffect(() => {
+    return () => {
+      setDragIndex(null);
+      setDragOverIndex(null);
+    };
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -91,8 +119,6 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
       <div
         ref={containerRef}
         className="flex-1 overflow-y-auto"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
       >
         {entries.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-xs text-zinc-600">
@@ -110,7 +136,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
               onToggleSelect={() => toggleSelect(i)}
               onUpdate={(e) => onUpdate(i, e)}
               onDelete={() => onDelete([i])}
-              onDragStart={() => handleDragStart(i)}
+              onDragStart={(e) => handleMouseDown(i, e)}
             />
           ))
         )}
