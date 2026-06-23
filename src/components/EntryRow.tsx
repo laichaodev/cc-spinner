@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
+import { useT } from "@/lib/i18n/context";
 import { Trash2, GripVertical } from "lucide-react";
 
 function formatTime(iso: string): string {
@@ -31,6 +32,7 @@ export function EntryRow({
   onDelete,
   onDragStart,
 }: Props) {
+  const { t } = useT();
   const [verb, setVerb] = useState(entry.verb);
   const [gloss, setGloss] = useState(entry.gloss);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,7 +86,7 @@ export function EntryRow({
           setVerb(e.target.value);
           debouncedUpdate({ verb: e.target.value, gloss });
         }}
-        placeholder="动词"
+        placeholder={t("entry.verbPlaceholder")}
       />
       <input
         className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text-secondary)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50"
@@ -93,10 +95,10 @@ export function EntryRow({
           setGloss(e.target.value);
           debouncedUpdate({ verb, gloss: e.target.value });
         }}
-        placeholder="注释（emoji + 场景描述）"
+        placeholder={t("entry.glossPlaceholder")}
       />
       <span className="w-14 shrink-0 text-right text-[10px] text-[var(--color-text-subtle)]">
-        {entry.updated_at ? formatTime(entry.updated_at) : "—"}
+        {entry.updated_at ? formatTime(entry.updated_at) : t("misc.none")}
       </span>
       <button
         className="rounded p-1 text-[var(--color-text-subtle)] opacity-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100"

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { EntryRow } from "./EntryRow";
+import { useT } from "@/lib/i18n/context";
 import { Trash2, ArrowUpDown, Plus } from "lucide-react";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 const localeCompare = (a: string, b: string) => a.localeCompare(b, "zh");
 
 export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntries, onAddEntry }: Props) {
+  const { t } = useT();
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -67,6 +69,13 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
     if (selected.size === 0) return;
     onDelete(Array.from(selected));
     setSelected(new Set());
+  };
+
+  const handleAdd = () => {
+    if (!onAddEntry || !newVerb.trim()) return;
+    onAddEntry({ verb: newVerb.trim(), gloss: newGloss.trim() });
+    setNewVerb("");
+    setNewGloss("");
   };
 
   const handleMouseDown = useCallback((index: number, e: React.MouseEvent) => {
@@ -131,14 +140,6 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
     document.addEventListener('mouseup', onMouseUp);
   }, [onReorder]);
 
-  const handleAdd = () => {
-    if (!onAddEntry || !newVerb.trim()) return;
-    onAddEntry({ verb: newVerb.trim(), gloss: newGloss.trim() });
-    setNewVerb("");
-    setNewGloss("");
-  };
-
-  // Cleanup listeners on unmount
   useEffect(() => {
     return () => {
       setDragIndex(null);
@@ -149,9 +150,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-4 py-1.5">
-        {/* Grip handle spacer */}
         <div className="w-[14px] shrink-0" />
-        {/* Select all checkbox */}
         <input
           type="checkbox"
           checked={allSelected}
@@ -162,7 +161,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
           className="w-36 flex items-center gap-1 text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           onClick={() => toggleSort("verb")}
         >
-          VERB
+          {t("entry.verb")}
           {sortKey === "verb" && <ArrowUpDown size={10} className="text-emerald-500" />}
           {sortKey === "verb" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
           {sortKey === "verb" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
@@ -171,7 +170,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
           className="flex-1 text-left text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           onClick={() => toggleSort("gloss")}
         >
-          GLOSS
+          {t("entry.gloss")}
           {sortKey === "gloss" && <ArrowUpDown size={10} className="text-emerald-500 inline ml-0.5" />}
           {sortKey === "gloss" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
           {sortKey === "gloss" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
@@ -180,7 +179,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
           className="w-14 text-right text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           onClick={() => toggleSort("time")}
         >
-          时间
+          {t("entry.time")}
           {sortKey === "time" && <ArrowUpDown size={10} className="text-emerald-500 inline ml-0.5" />}
           {sortKey === "time" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
           {sortKey === "time" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
@@ -191,7 +190,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
             onClick={handleDeleteSelected}
           >
             <Trash2 size={12} />
-            删除选中 ({selected.size})
+            {t("entry.deleteSelected", { n: selected.size })}
           </button>
         )}
       </div>
@@ -199,9 +198,9 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
         ref={containerRef}
         className="flex-1 overflow-y-auto"
       >
-        {entries.length === 0 ? (
+        {entries.length === 0 && !onAddEntry ? (
           <div className="flex h-32 items-center justify-center text-xs text-[var(--color-text-subtle)]">
-            暂无词条，使用「AI 生成」或「导入 .txt」添加
+            {t("entry.empty")}
           </div>
         ) : (
           entries.map((entry, i) => (
@@ -228,21 +227,20 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
               value={newVerb}
               onChange={(e) => setNewVerb(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
-              placeholder="新动词"
+              placeholder={t("entry.newVerb")}
             />
             <input
               className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text-secondary)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50 placeholder:text-[var(--color-text-muted)]"
               value={newGloss}
               onChange={(e) => setNewGloss(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
-              placeholder="注释"
+              placeholder={t("entry.newGloss")}
             />
             <div className="w-14 shrink-0" />
             <button
               className="rounded p-1 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-30"
               onClick={handleAdd}
               disabled={!newVerb.trim()}
-              title="添加"
             >
               <Plus size={14} />
             </button>

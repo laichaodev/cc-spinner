@@ -4,6 +4,7 @@ import type { Profile } from "@/lib/api/profiles";
 import { ProfileItem } from "./ProfileItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { profilesApi } from "@/lib/api/profiles";
+import { useT } from "@/lib/i18n/context";
 
 interface Props {
   profiles: Profile[];
@@ -20,14 +21,15 @@ export function Sidebar({
   onSelect,
   onSwitch,
 }: Props) {
+  const { t } = useT();
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!error) return;
-    const t = setTimeout(() => setError(null), 5000);
-    return () => clearTimeout(t);
+    const tmr = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(tmr);
   }, [error]);
 
   const createMutation = useMutation({
@@ -63,13 +65,13 @@ export function Sidebar({
           />
         ))}
         {profiles.length === 0 && (
-          <p className="px-3 py-4 text-xs text-[var(--color-text-muted)]">暂无词组，点击下方按钮创建</p>
+          <p className="px-3 py-4 text-xs text-[var(--color-text-muted)]">{t("sidebar.empty")}</p>
         )}
       </div>
       <div className="border-t border-[var(--color-border)] p-2">
         <input
           className="w-full rounded bg-[var(--color-surface-hover)] px-2 py-1.5 text-xs text-[var(--color-text)] placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500"
-          placeholder="词组名称"
+          placeholder={t("sidebar.placeholder")}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => {
@@ -84,7 +86,7 @@ export function Sidebar({
           disabled={createMutation.isPending}
         >
           <Plus size={14} />
-          新建
+          {t("sidebar.create")}
         </button>
       </div>
     </div>

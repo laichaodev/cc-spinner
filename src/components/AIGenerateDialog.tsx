@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { aiApi } from "@/lib/api/ai";
+import { useT } from "@/lib/i18n/context";
 import { Sparkles, X, AlertCircle } from "lucide-react";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function AIGenerateDialog({ onClose, onAdd }: Props) {
+  const { t } = useT();
   const [input, setInput] = useState("");
   const [generating, setGenerating] = useState(false);
   const [results, setResults] = useState<SpinnerEntry[]>([]);
@@ -30,17 +32,17 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
       setResults(entries);
     } catch (e: any) {
       if (String(e) === "Cancelled") {
-        setError("已取消");
+        setError(t("ai.cancelled"));
       } else {
         setError(String(e));
       }
     } finally {
       setGenerating(false);
     }
-  }, [words]);
+  }, [words, t]);
 
   const handleAddAll = () => {
-    onAdd(results.filter((r) => !r.gloss.startsWith("[生成失败]")));
+    onAdd(results.filter((r) => !r.gloss.startsWith("[生成失败]") && !r.gloss.startsWith("[Failed]")));
   };
 
   return (
@@ -49,7 +51,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-emerald-400" />
-            <span className="text-sm font-medium">AI 生成 Gloss</span>
+            <span className="text-sm font-medium">{t("ai.title")}</span>
           </div>
           <button
             className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] hover:text-zinc-800"
@@ -64,7 +66,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
             <>
               <textarea
                 className="w-full h-32 rounded bg-[var(--color-surface-hover)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
-                placeholder="粘贴单词列表，每行一个&#10;例如：&#10;Pondering&#10;Refactoring&#10;Debugging"
+                placeholder={t("ai.placeholder")}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
               />
@@ -74,7 +76,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                 disabled={words.length === 0 || generating}
               >
                 <Sparkles size={14} />
-                生成 ({words.length} 词)
+                {t("ai.generate")} ({words.length})
               </button>
             </>
           )}
@@ -82,7 +84,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
           {generating && (
             <div className="flex items-center justify-center gap-3 py-8">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
-              <span className="text-sm text-[var(--color-text-secondary)]">生成中...</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">{t("ai.generating")}</span>
             </div>
           )}
 
@@ -100,7 +102,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                   <div
                     key={i}
                     className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
-                      r.gloss.startsWith("[生成失败]")
+                      r.gloss.startsWith("[生成失败]") || r.gloss.startsWith("[Failed]")
                         ? "text-red-600"
                         : "text-zinc-800 dark:text-zinc-300"
                     }`}
@@ -115,7 +117,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                   className="flex-1 rounded bg-emerald-600 py-2 text-sm font-medium text-white hover:bg-emerald-500"
                   onClick={handleAddAll}
                 >
-                  添加到词组
+                  {t("ai.addToGroup")}
                 </button>
                 <button
                   className="rounded bg-[var(--color-surface-hover)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-active)]"
@@ -124,7 +126,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                     setInput("");
                   }}
                 >
-                  重新生成
+                  {t("ai.regenerate")}
                 </button>
               </div>
             </>

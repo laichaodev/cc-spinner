@@ -5,6 +5,7 @@ import { EditorToolbar } from "./EditorToolbar";
 import { EntryTable } from "./EntryTable";
 import { AIGenerateDialog } from "./AIGenerateDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useT } from "@/lib/i18n/context";
 import { AlertCircle, X } from "lucide-react";
 
 interface Props {
@@ -13,15 +14,15 @@ interface Props {
 }
 
 export function MainContent({ profile, onProfileUpdated }: Props) {
+  const { t } = useT();
   const queryClient = useQueryClient();
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-clear error after 5s
   useEffect(() => {
     if (!error) return;
-    const t = setTimeout(() => setError(null), 5000);
-    return () => clearTimeout(t);
+    const tmr = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(tmr);
   }, [error]);
 
   const addEntriesMutation = useMutation({
@@ -92,7 +93,7 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
   if (!profile) {
     return (
       <div className="flex flex-1 items-center justify-center text-[var(--color-text-muted)]">
-        选择或创建一个词组
+        {t("main.empty")}
       </div>
     );
   }

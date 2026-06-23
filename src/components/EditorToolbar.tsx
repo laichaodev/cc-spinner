@@ -1,4 +1,5 @@
 import { Sparkles, Upload } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 interface Props {
   mode: "replace" | "append";
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Props) {
+  const { t } = useT();
+
   const handleImport = async () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -36,7 +39,7 @@ export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Pr
           }`}
           onClick={() => onModeChange("replace")}
         >
-          替换
+          {t("toolbar.replace")}
         </button>
         <button
           className={`rounded px-2.5 py-1 text-xs transition-colors ${
@@ -46,7 +49,7 @@ export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Pr
           }`}
           onClick={() => onModeChange("append")}
         >
-          追加
+          {t("toolbar.append")}
         </button>
       </div>
       <div className="h-4 w-px bg-[var(--color-surface-hover)]" />
@@ -55,14 +58,14 @@ export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Pr
         onClick={handleImport}
       >
         <Upload size={14} />
-        导入 .txt
+        {t("toolbar.import")}
       </button>
       <button
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
         onClick={onAiGenerate}
       >
         <Sparkles size={14} />
-        AI 生成
+        {t("toolbar.aiGen")}
       </button>
     </div>
   );

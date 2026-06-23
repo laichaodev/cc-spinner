@@ -1,6 +1,7 @@
 import type { Profile } from "@/lib/api/profiles";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { profilesApi } from "@/lib/api/profiles";
+import { useT } from "@/lib/i18n/context";
 import { Trash2, Copy } from "lucide-react";
 
 interface Props {
@@ -20,6 +21,7 @@ export function ProfileItem({
   onSwitch,
   onError,
 }: Props) {
+  const { t, lang } = useT();
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -29,7 +31,7 @@ export function ProfileItem({
   });
 
   const dupMutation = useMutation({
-    mutationFn: () => profilesApi.duplicate(profile.id, `${profile.name} (副本)`),
+    mutationFn: () => profilesApi.duplicate(profile.id, t("profile.duplicate", { name: profile.name })),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profiles"] }),
     onError: (e: any) => onError?.(String(e)),
   });
@@ -48,9 +50,9 @@ export function ProfileItem({
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
       )}
       <span className="text-[10px] text-[var(--color-text-subtle)]">
-        {profile.mode === "replace" ? "替换" : "追加"}
+        {profile.mode === "replace" ? t("profile.mode.replace") : t("profile.mode.append")}
       </span>
-      <span className="text-[10px] text-[var(--color-text-subtle)]">{profile.entries.length}词</span>
+      <span className="text-[10px] text-[var(--color-text-subtle)]">{profile.entries.length}{lang === "zh" ? "词" : ""}</span>
       <div className="hidden gap-1 group-hover:flex">
         {!isActive && (
           <button
@@ -60,7 +62,7 @@ export function ProfileItem({
               onSwitch();
             }}
           >
-            激活
+            {t("profile.activate")}
           </button>
         )}
         <button
