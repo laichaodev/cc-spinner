@@ -44,15 +44,15 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-[600px] max-h-[80vh] rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl flex flex-col">
-        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="w-[600px] max-h-[80vh] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl flex flex-col">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-emerald-400" />
             <span className="text-sm font-medium">AI 生成 Gloss</span>
           </div>
           <button
-            className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
+            className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] hover:text-zinc-800"
             onClick={onClose}
           >
             <X size={16} />
@@ -63,7 +63,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
           {results.length === 0 && !generating && (
             <>
               <textarea
-                className="w-full h-32 rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                className="w-full h-32 rounded bg-[var(--color-surface-hover)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
                 placeholder="粘贴单词列表，每行一个&#10;例如：&#10;Pondering&#10;Refactoring&#10;Debugging"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -82,12 +82,12 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
           {generating && (
             <div className="flex items-center justify-center gap-3 py-8">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
-              <span className="text-sm text-zinc-400">生成中...</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">生成中...</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2 rounded bg-red-900/20 px-3 py-2 text-sm text-red-400">
+            <div className="flex items-start gap-2 rounded bg-red-50 px-3 py-2 text-sm text-red-600">
               <AlertCircle size={14} className="mt-0.5 shrink-0" />
               {error}
             </div>
@@ -101,12 +101,12 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                     key={i}
                     className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
                       r.gloss.startsWith("[生成失败]")
-                        ? "text-red-400"
-                        : "text-zinc-300"
+                        ? "text-red-600"
+                        : "text-zinc-800 dark:text-zinc-300"
                     }`}
                   >
                     <span className="w-28 shrink-0 font-medium">{r.verb}</span>
-                    <span className="text-zinc-500">{r.gloss}</span>
+                    <span className="text-[var(--color-text-muted)]">{r.gloss}</span>
                   </div>
                 ))}
               </div>
@@ -118,7 +118,7 @@ export function AIGenerateDialog({ onClose, onAdd }: Props) {
                   添加到词组
                 </button>
                 <button
-                  className="rounded bg-zinc-800 px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-700"
+                  className="rounded bg-[var(--color-surface-hover)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-active)]"
                   onClick={() => {
                     setResults([]);
                     setInput("");

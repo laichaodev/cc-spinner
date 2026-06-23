@@ -38,8 +38,8 @@ export function ProfileItem({
     <div
       className={`group flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm transition-colors ${
         isSelected
-          ? "bg-zinc-700 text-zinc-100"
-          : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          ? "bg-[var(--color-surface-active)] text-zinc-950"
+          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
       }`}
       onClick={onSelect}
     >
@@ -47,14 +47,14 @@ export function ProfileItem({
       {isActive && (
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
       )}
-      <span className="text-[10px] text-zinc-600">
+      <span className="text-[10px] text-[var(--color-text-subtle)]">
         {profile.mode === "replace" ? "替换" : "追加"}
       </span>
-      <span className="text-[10px] text-zinc-600">{profile.entries.length}词</span>
+      <span className="text-[10px] text-[var(--color-text-subtle)]">{profile.entries.length}词</span>
       <div className="hidden gap-1 group-hover:flex">
         {!isActive && (
           <button
-            className="rounded px-1 text-[10px] text-emerald-500 hover:bg-zinc-600"
+            className="rounded px-1 text-[10px] text-emerald-500 hover:bg-[var(--color-surface-active)]"
             onClick={(e) => {
               e.stopPropagation();
               onSwitch();
@@ -64,7 +64,7 @@ export function ProfileItem({
           </button>
         )}
         <button
-          className="rounded p-0.5 text-zinc-500 hover:bg-zinc-600 hover:text-zinc-300"
+          className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-active)] hover:text-zinc-800"
           onClick={(e) => {
             e.stopPropagation();
             dupMutation.mutate();
@@ -73,7 +73,7 @@ export function ProfileItem({
           <Copy size={12} />
         </button>
         <button
-          className="rounded p-0.5 text-zinc-500 hover:bg-red-900 hover:text-red-400"
+          className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
           onClick={(e) => {
             e.stopPropagation();
             deleteMutation.mutate();

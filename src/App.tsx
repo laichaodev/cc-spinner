@@ -45,14 +45,14 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+      <div className="flex h-screen items-center justify-center bg-[var(--color-bg)] text-[var(--color-text-secondary)]">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text)]">
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar

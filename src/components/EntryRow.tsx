@@ -53,14 +53,14 @@ export function EntryRow({
   return (
     <div
       data-row-index={index}
-      className={`group flex items-center gap-3 border-b border-zinc-800/50 px-4 py-1.5 transition-colors hover:bg-zinc-900 ${
-        isSelected ? "bg-zinc-800/50" : ""
+      className={`group flex items-center gap-3 border-b border-[var(--color-border-light)] px-4 py-1.5 transition-colors hover:bg-[var(--color-surface)] ${
+        isSelected ? "bg-zinc-100 dark:bg-zinc-800/50" : ""
       } ${isDragging ? "opacity-40" : ""} ${
         isDragOver ? "border-t-2 border-t-emerald-400" : ""
       }`}
     >
       <div
-        className="shrink-0 cursor-grab text-zinc-600 opacity-0 group-hover:opacity-100 active:cursor-grabbing"
+        className="shrink-0 cursor-grab text-[var(--color-text-subtle)] opacity-0 group-hover:opacity-100 active:cursor-grabbing"
         onMouseDown={onDragStart}
       >
         <GripVertical size={14} />
@@ -69,10 +69,10 @@ export function EntryRow({
         type="checkbox"
         checked={isSelected}
         onChange={onToggleSelect}
-        className="h-3 w-3 shrink-0 rounded border-zinc-600 bg-zinc-800 accent-emerald-500"
+        className="h-3 w-3 shrink-0 rounded border-zinc-400 dark:border-zinc-600 bg-[var(--color-surface-hover)] accent-emerald-500"
       />
       <input
-        className="w-36 shrink-0 rounded bg-transparent px-1 py-0.5 text-sm text-zinc-200 outline-none focus:bg-zinc-800 focus:ring-1 focus:ring-emerald-500/50"
+        className="w-36 shrink-0 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50"
         value={verb}
         onChange={(e) => {
           setVerb(e.target.value);
@@ -81,7 +81,7 @@ export function EntryRow({
         placeholder="动词"
       />
       <input
-        className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-zinc-400 outline-none focus:bg-zinc-800 focus:ring-1 focus:ring-emerald-500/50"
+        className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text-secondary)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50"
         value={gloss}
         onChange={(e) => {
           setGloss(e.target.value);
@@ -90,7 +90,7 @@ export function EntryRow({
         placeholder="注释（emoji + 场景描述）"
       />
       <button
-        className="rounded p-1 text-zinc-600 opacity-0 hover:bg-red-900/30 hover:text-red-400 group-hover:opacity-100"
+        className="rounded p-1 text-[var(--color-text-subtle)] opacity-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100"
         onClick={onDelete}
       >
         <Trash2 size={14} />

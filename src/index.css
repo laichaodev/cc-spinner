@@ -15,4 +15,37 @@
     font-family: "SimHei", "Microsoft YaHei", "PingFang SC", "Noto Sans SC",
       ui-sans-serif, system-ui, sans-serif;
   }
+
+  /* Light mode (default) */
+  :root {
+    --color-bg: #fafafa;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f4f4f5;
+    --color-surface-active: #e4e4e7;
+    --color-border: #e4e4e7;
+    --color-border-light: #e4e4e780;
+    --color-text: #18181b;
+    --color-text-secondary: #52525b;
+    --color-text-muted: #a1a1aa;
+    --color-text-subtle: #71717a;
+  }
+
+  /* Dark mode */
+  .dark {
+    --color-bg: #18181b;
+    --color-surface: #18181b;
+    --color-surface-hover: #27272a;
+    --color-surface-active: #3f3f46;
+    --color-border: #27272a;
+    --color-border-light: #27272a80;
+    --color-text: #e4e4e7;
+    --color-text-secondary: #a1a1aa;
+    --color-text-muted: #71717a;
+    --color-text-subtle: #52525b;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
 }

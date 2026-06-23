@@ -91,7 +91,7 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
 
   if (!profile) {
     return (
-      <div className="flex flex-1 items-center justify-center text-zinc-500">
+      <div className="flex flex-1 items-center justify-center text-[var(--color-text-muted)]">
         选择或创建一个词组
       </div>
     );
@@ -100,11 +100,11 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {error && (
-        <div className="flex items-center gap-2 border-b border-red-900/30 bg-red-950/30 px-4 py-2">
-          <AlertCircle size={14} className="text-red-400 shrink-0" />
-          <span className="flex-1 text-xs text-red-300">{error}</span>
+        <div className="flex items-center gap-2 border-b border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/30 px-4 py-2">
+          <AlertCircle size={14} className="text-red-600 dark:text-red-400 shrink-0" />
+          <span className="flex-1 text-xs text-red-700 dark:text-red-300">{error}</span>
           <button
-            className="text-red-400 hover:text-red-300"
+            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
             onClick={() => setError(null)}
           >
             <X size={14} />

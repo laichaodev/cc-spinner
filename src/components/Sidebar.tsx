@@ -40,12 +40,12 @@ export function Sidebar({
   });
 
   return (
-    <div className="flex w-56 flex-col border-r border-zinc-800 bg-zinc-900">
+    <div className="flex w-56 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
       {error && (
-        <div className="flex items-center gap-1.5 border-b border-red-900/30 bg-red-950/30 px-2 py-1.5">
-          <AlertCircle size={12} className="text-red-400 shrink-0" />
-          <span className="flex-1 text-[10px] text-red-300 truncate">{error}</span>
-          <button className="text-red-400 hover:text-red-300" onClick={() => setError(null)}>
+        <div className="flex items-center gap-1.5 border-b border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/30 px-2 py-1.5">
+          <AlertCircle size={12} className="text-red-600 dark:text-red-400 shrink-0" />
+          <span className="flex-1 text-[10px] text-red-700 dark:text-red-300 truncate">{error}</span>
+          <button className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setError(null)}>
             <X size={12} />
           </button>
         </div>
@@ -63,12 +63,12 @@ export function Sidebar({
           />
         ))}
         {profiles.length === 0 && (
-          <p className="px-3 py-4 text-xs text-zinc-500">暂无词组，点击下方按钮创建</p>
+          <p className="px-3 py-4 text-xs text-[var(--color-text-muted)]">暂无词组，点击下方按钮创建</p>
         )}
       </div>
-      <div className="border-t border-zinc-800 p-2">
+      <div className="border-t border-[var(--color-border)] p-2">
         <input
-          className="w-full rounded bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500"
+          className="w-full rounded bg-[var(--color-surface-hover)] px-2 py-1.5 text-xs text-[var(--color-text)] placeholder-zinc-500 outline-none focus:ring-1 focus:ring-emerald-500"
           placeholder="词组名称"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -79,7 +79,7 @@ export function Sidebar({
           }}
         />
         <button
-          className="mt-1 flex w-full items-center justify-center gap-1 rounded bg-zinc-800 py-1.5 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+          className="mt-1 flex w-full items-center justify-center gap-1 rounded bg-[var(--color-surface-hover)] py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-active)] hover:text-[var(--color-text)]"
           onClick={() => newName.trim() && createMutation.mutate()}
           disabled={createMutation.isPending}
         >

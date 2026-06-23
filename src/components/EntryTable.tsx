@@ -25,6 +25,16 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
     });
   };
 
+  const allSelected = entries.length > 0 && selected.size === entries.length;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(entries.map((_, i) => i)));
+    }
+  };
+
   const handleDeleteSelected = () => {
     if (selected.size === 0) return;
     onDelete(Array.from(selected));
@@ -103,12 +113,21 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-zinc-800 px-4 py-1.5">
-        <span className="w-36 text-[11px] font-medium text-zinc-500">VERB</span>
-        <span className="flex-1 text-[11px] font-medium text-zinc-500">GLOSS</span>
+      <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-4 py-1.5">
+        {/* Grip handle spacer */}
+        <div className="w-[14px] shrink-0" />
+        {/* Select all checkbox */}
+        <input
+          type="checkbox"
+          checked={allSelected}
+          onChange={toggleSelectAll}
+          className="h-3 w-3 shrink-0 rounded border-zinc-400 dark:border-zinc-600 bg-[var(--color-surface-hover)] accent-emerald-500"
+        />
+        <span className="w-36 text-[11px] font-medium text-[var(--color-text-muted)]">VERB</span>
+        <span className="flex-1 text-[11px] font-medium text-[var(--color-text-muted)]">GLOSS</span>
         {selected.size > 0 && (
           <button
-            className="flex items-center gap-1 rounded px-2 py-0.5 text-xs text-red-400 hover:bg-red-900/30"
+            className="flex shrink-0 items-center gap-1 rounded px-2 py-0.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
             onClick={handleDeleteSelected}
           >
             <Trash2 size={12} />
@@ -121,7 +140,7 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder }: Props) {
         className="flex-1 overflow-y-auto"
       >
         {entries.length === 0 ? (
-          <div className="flex h-32 items-center justify-center text-xs text-zinc-600">
+          <div className="flex h-32 items-center justify-center text-xs text-[var(--color-text-subtle)]">
             暂无词条，使用「AI 生成」或「导入 .txt」添加
           </div>
         ) : (
