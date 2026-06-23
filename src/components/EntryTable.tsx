@@ -19,26 +19,27 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [sortKey, setSortKey] = useState<"verb" | "time">("verb");
+  const [sortKey, setSortKey] = useState<"verb" | "gloss" | "time">("verb");
   const [newVerb, setNewVerb] = useState("");
   const [newGloss, setNewGloss] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleSort = (key: "verb" | "time") => {
+  const toggleSort = (key: "verb" | "gloss" | "time") => {
     if (!onSetEntries) return;
     const next = sortKey === key && sortDir === "asc" ? "desc" : "asc";
     setSortKey(key);
     setSortDir(next);
     const sorted = [...entries].sort((a, b) => {
-      if (key === "verb") {
-        return next === "asc"
-          ? localeCompare(a.verb, b.verb)
-          : localeCompare(b.verb, a.verb);
-      } else {
+      if (key === "time") {
         const ta = a.updated_at ?? "";
         const tb = b.updated_at ?? "";
         return next === "asc" ? ta.localeCompare(tb) : tb.localeCompare(ta);
       }
+      const va = key === "verb" ? a.verb : a.gloss;
+      const vb = key === "verb" ? b.verb : b.gloss;
+      return next === "asc"
+        ? localeCompare(va, vb)
+        : localeCompare(vb, va);
     });
     onSetEntries(sorted);
   };
@@ -166,7 +167,15 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
           {sortKey === "verb" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
           {sortKey === "verb" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
         </button>
-        <span className="flex-1 text-[11px] font-medium text-[var(--color-text-muted)]">GLOSS</span>
+        <button
+          className="flex-1 text-left text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          onClick={() => toggleSort("gloss")}
+        >
+          GLOSS
+          {sortKey === "gloss" && <ArrowUpDown size={10} className="text-emerald-500 inline ml-0.5" />}
+          {sortKey === "gloss" && sortDir === "asc" && <span className="text-emerald-500 text-[9px]">↑</span>}
+          {sortKey === "gloss" && sortDir === "desc" && <span className="text-emerald-500 text-[9px]">↓</span>}
+        </button>
         <button
           className="w-14 text-right text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           onClick={() => toggleSort("time")}
