@@ -4,8 +4,6 @@ export const strings: Record<Lang, Record<string, string>> = {
   zh: {
     // App
     "app.loading": "加载中…",
-    "app.title": "CC Spinner",
-    "app.cli": "CLI",
 
     // Sidebar
     "sidebar.empty": "暂无词组，点击下方按钮创建",

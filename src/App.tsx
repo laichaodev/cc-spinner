@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { profilesApi } from "@/lib/api/profiles";
 import { I18nProvider, useT } from "@/lib/i18n/context";
-import { TitleBar } from "@/components/TitleBar";
 import { Sidebar } from "@/components/Sidebar";
 import { MainContent } from "@/components/MainContent";
 import { StatusBar } from "@/components/StatusBar";
@@ -55,7 +54,6 @@ function AppInner() {
 
   return (
     <div className="flex h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text)]">
-      <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           profiles={profiles}

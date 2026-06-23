@@ -75,7 +75,6 @@ export function StatusBar({ activeProfile }: Props) {
         >
           {theme === "dark" ? <Sun size={12} /> : <Moon size={12} />}
         </button>
-        <span className="text-[11px] text-[var(--color-text-subtle)]">~/.claude/settings.json</span>
       </div>
     </div>
   );
