@@ -7,6 +7,7 @@ import { AIGenerateDialog } from "./AIGenerateDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useT } from "@/lib/i18n/context";
 import { AlertCircle, X } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
 
 interface Props {
   profile: Profile | null;
@@ -90,6 +91,21 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
     [profile, onProfileUpdated]
   );
 
+  const handleExport = useCallback(async () => {
+    if (!profile) return;
+    try {
+      const filePath = await save({
+        defaultPath: `${profile.name}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (filePath) {
+        await profilesApi.export(profile.id, filePath);
+      }
+    } catch (e) {
+      setError(String(e));
+    }
+  }, [profile]);
+
   if (!profile) {
     return (
       <div className="flex flex-1 items-center justify-center text-[var(--color-text-muted)]">
@@ -127,6 +143,7 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
             }),
           })
         }
+        onExport={handleExport}
         onAiGenerate={() => setShowAiDialog(true)}
       />
       <EntryTable

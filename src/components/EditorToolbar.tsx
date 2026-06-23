@@ -1,14 +1,15 @@
-import { Sparkles, Upload } from "lucide-react";
+import { Sparkles, Upload, Download } from "lucide-react";
 import { useT } from "@/lib/i18n/context";
 
 interface Props {
   mode: "replace" | "append";
   onModeChange: (mode: "replace" | "append") => void;
   onImport: (words: string[]) => void;
+  onExport: () => void;
   onAiGenerate: () => void;
 }
 
-export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Props) {
+export function EditorToolbar({ mode, onModeChange, onImport, onExport, onAiGenerate }: Props) {
   const { t } = useT();
 
   const handleImport = async () => {
@@ -59,6 +60,13 @@ export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Pr
       >
         <Upload size={14} />
         {t("toolbar.import")}
+      </button>
+      <button
+        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+        onClick={onExport}
+      >
+        <Download size={14} />
+        {t("toolbar.export")}
       </button>
       <button
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"

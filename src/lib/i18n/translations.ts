@@ -21,6 +21,7 @@ export const strings: Record<Lang, Record<string, string>> = {
     "toolbar.replace": "替换",
     "toolbar.append": "追加",
     "toolbar.import": "导入 .txt",
+    "toolbar.export": "导出 .json",
     "toolbar.aiGen": "AI 生成",
 
     // EntryTable
@@ -77,6 +78,7 @@ export const strings: Record<Lang, Record<string, string>> = {
     "toolbar.replace": "Replace",
     "toolbar.append": "Append",
     "toolbar.import": "Import .txt",
+    "toolbar.export": "Export .json",
     "toolbar.aiGen": "AI Gen",
 
     "entry.verb": "VERB",
