@@ -5,6 +5,8 @@ Claude Code Spinner 可视化管理器 —— 给 CC 的加载动画配上双语
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%202-orange.svg)](https://tauri.app/)
 
+![截图](docs/screenshot.png)
+
 ## 是什么
 
 Claude Code 等待时会显示一个动词短语（称为 spinner）。CC Spinner 提供了可视化界面来管理这些短语，为每个词条添加 emoji 注释，并一键写入 CC 配置。支持中英文界面、浅色/深色模式。
