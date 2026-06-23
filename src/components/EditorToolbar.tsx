@@ -1,14 +1,13 @@
-import { Sparkles, Upload, Plus } from "lucide-react";
+import { Sparkles, Upload } from "lucide-react";
 
 interface Props {
   mode: "replace" | "append";
   onModeChange: (mode: "replace" | "append") => void;
   onImport: (words: string[]) => void;
   onAiGenerate: () => void;
-  onAddEntry: () => void;
 }
 
-export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate, onAddEntry }: Props) {
+export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate }: Props) {
   const handleImport = async () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -51,13 +50,6 @@ export function EditorToolbar({ mode, onModeChange, onImport, onAiGenerate, onAd
         </button>
       </div>
       <div className="h-4 w-px bg-[var(--color-surface-hover)]" />
-      <button
-        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-        onClick={onAddEntry}
-      >
-        <Plus size={14} />
-        添加
-      </button>
       <button
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
         onClick={handleImport}

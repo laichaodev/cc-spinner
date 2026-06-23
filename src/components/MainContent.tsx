@@ -34,13 +34,13 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
     onError: (e: any) => setError(String(e)),
   });
 
-  const handleAddEntry = useCallback(() => {
-    if (!profile) return;
-    addEntriesMutation.mutate({
-      id: profile.id,
-      entries: [{ verb: "", gloss: "" }],
-    });
-  }, [profile, addEntriesMutation]);
+  const handleAddEntry = useCallback(
+    (entry: SpinnerEntry) => {
+      if (!profile) return;
+      addEntriesMutation.mutate({ id: profile.id, entries: [entry] });
+    },
+    [profile, addEntriesMutation]
+  );
 
   const updateEntryMutation = useMutation({
     mutationFn: ({
@@ -114,7 +114,6 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
       <EditorToolbar
         mode={profile.mode}
         onModeChange={handleModeChange}
-        onAddEntry={handleAddEntry}
         onImport={(words) =>
           addEntriesMutation.mutate({
             id: profile.id,
@@ -143,6 +142,7 @@ export function MainContent({ profile, onProfileUpdated }: Props) {
         onSetEntries={(entries) =>
           profilesApi.update(profile.id, { entries }).then(onProfileUpdated).catch((e) => setError(String(e)))
         }
+        onAddEntry={handleAddEntry}
       />
       {showAiDialog && (
         <AIGenerateDialog

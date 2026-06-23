@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { SpinnerEntry } from "@/lib/api/profiles";
 import { EntryRow } from "./EntryRow";
-import { Trash2, ArrowUpDown } from "lucide-react";
+import { Trash2, ArrowUpDown, Plus } from "lucide-react";
 
 interface Props {
   entries: SpinnerEntry[];
@@ -9,15 +9,18 @@ interface Props {
   onDelete: (indices: number[]) => void;
   onReorder: (from: number, to: number) => void;
   onSetEntries?: (entries: SpinnerEntry[]) => void;
+  onAddEntry?: (entry: SpinnerEntry) => void;
 }
 
 const localeCompare = (a: string, b: string) => a.localeCompare(b, "zh");
 
-export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntries }: Props) {
+export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntries, onAddEntry }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [newVerb, setNewVerb] = useState("");
+  const [newGloss, setNewGloss] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleSort = () => {
@@ -119,6 +122,13 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
     document.addEventListener('mouseup', onMouseUp);
   }, [onReorder]);
 
+  const handleAdd = () => {
+    if (!onAddEntry || !newVerb.trim()) return;
+    onAddEntry({ verb: newVerb.trim(), gloss: newGloss.trim() });
+    setNewVerb("");
+    setNewGloss("");
+  };
+
   // Cleanup listeners on unmount
   useEffect(() => {
     return () => {
@@ -182,6 +192,34 @@ export function EntryTable({ entries, onUpdate, onDelete, onReorder, onSetEntrie
               onDragStart={(e) => handleMouseDown(i, e)}
             />
           ))
+        )}
+        {onAddEntry && (
+          <div className="flex items-center gap-3 border-b border-[var(--color-border-light)] px-4 py-1.5">
+            <div className="w-[14px] shrink-0" />
+            <div className="w-3 shrink-0" />
+            <input
+              className="w-36 shrink-0 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50 placeholder:text-[var(--color-text-muted)]"
+              value={newVerb}
+              onChange={(e) => setNewVerb(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+              placeholder="新动词"
+            />
+            <input
+              className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-[var(--color-text-secondary)] outline-none focus:bg-[var(--color-surface-hover)] focus:ring-1 focus:ring-emerald-500/50 placeholder:text-[var(--color-text-muted)]"
+              value={newGloss}
+              onChange={(e) => setNewGloss(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+              placeholder="注释"
+            />
+            <button
+              className="rounded p-1 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-30"
+              onClick={handleAdd}
+              disabled={!newVerb.trim()}
+              title="添加"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
         )}
       </div>
     </div>
