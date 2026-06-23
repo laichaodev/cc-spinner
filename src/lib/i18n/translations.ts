@@ -63,8 +63,6 @@ export const strings: Record<Lang, Record<string, string>> = {
 
   en: {
     "app.loading": "Loading…",
-    "app.title": "CC Spinner",
-    "app.cli": "CLI",
 
     "sidebar.empty": "No word groups. Create one below.",
     "sidebar.placeholder": "Group name",

@@ -19,13 +19,7 @@
     "react": "^18",
     "react-dom": "^18",
     "@tanstack/react-query": "^5",
-    "react-hook-form": "^7",
-    "zod": "^3",
-    "@hookform/resolvers": "^3",
-    "lucide-react": "^0.400",
-    "class-variance-authority": "^0.7",
-    "clsx": "^2",
-    "tailwind-merge": "^2"
+    "lucide-react": "^0.400"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
